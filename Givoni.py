@@ -284,7 +284,7 @@ def calculer_zones_extensions(Tpma, P):
     T_top_vn = np.linspace(Tmin, Tmax, pts)
     poly_VN.extend(zip(T_top_vn, f_arr(T_top_vn, 100)))
     
-    poly_VN.append((Tmax + 5, F_s(Tmax + 5, 50)))
+    poly_VN.append((Tmax + 5, f_s(Tmax + 5, 50)))
     poly_VN.append((Tmax + 5, F_s(Tmax + 5, 20)))
     
     T_bot_vn = np.linspace(Tmax + 5, Tmin, pts)
