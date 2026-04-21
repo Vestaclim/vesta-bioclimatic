@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^cd \"c:\\\\Users\\\\BenoitLEFORT\\\\OneDrive - Vestaclim\\\\Vestaclim - Shared Documents\\\\21 - Data\\\\20 - Analyse de la Data\\\\Modélisation Givoni\"; \\.\\\\\\.venv\\\\Scripts\\\\activate\\.bat; python Givoni\\.py$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
