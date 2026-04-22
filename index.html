@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagramme Givoni Interactif</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; display: flex; height: 100vh; background-color: #f8f9fa; color: #333; }
+        #sidebar { width: 320px; background-color: #2c3e50; color: white; padding: 20px; overflow-y: auto; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
+        #main { flex-grow: 1; display: flex; flex-direction: column; padding: 20px; overflow-y: auto; }
+        .header-title { font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #2c3e50; }
+        
+        /* Styles des contrôles */
+        .control-group { margin-bottom: 20px; }
+        .control-group h3 { font-size: 14px; text-transform: uppercase; margin-bottom: 10px; color: #18bc9c; border-bottom: 1px solid #34495e; padding-bottom: 5px; }
+        .slider-container { margin-bottom: 15px; }
+        .slider-container label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
+        input[type=range] { width: 100%; cursor: pointer; }
+        input[type=number] { width: 70px; padding: 2px; border-radius: 4px; border: none; text-align: right; }
+        .checkbox-container { display: block; margin-bottom: 8px; font-size: 13px; cursor: pointer; }
+        
+        /* Layout principal */
+        #content-area { display: flex; gap: 20px; flex-grow: 1; }
+        #chart-container { flex-grow: 1; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 10px; min-height: 600px; }
+        #stats-container { width: 300px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 20px; }
+        
+        .stat-box h4 { margin-top: 0; color: #2980b9; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px; }
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; border-bottom: 1px dashed #eee; padding-bottom: 4px; }
+        .stat-val { font-weight: bold; }
+        .text-red { color: #e74c3c; }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <h2 style="margin-top:0; font-size: 18px;">Paramètres</h2>
+        
+        <div class="control-group">
+            <h3>🌐 Extérieur</h3>
+            <div class="slider-container">
+                <label>Pression (hPa) <input type="number" id="val_P" value="1013.25" step="1"></label>
+                <input type="range" id="P" min="600" max="1050" value="1013.25" step="1">
+            </div>
+            <div class="slider-container">
+                <label>T° Ext. (°C) <input type="number" id="val_Text" value="25.0" step="0.5"></label>
+                <input type="range" id="Text" min="0" max="50" value="25.0" step="0.5">
+            </div>
+            <div class="slider-container">
+                <label>HA Ext. (g/kg) <input type="number" id="val_HAext" value="10.0" step="0.1"></label>
+                <input type="range" id="HAext" min="0" max="35" value="10.0" step="0.1">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>🏠 Intérieur</h3>
+            <div class="slider-container">
+                <label>T° Int. (°C) <input type="number" id="val_Tint" value="28.0" step="0.5"></label>
+                <input type="range" id="Tint" min="0" max="50" value="28.0" step="0.5">
+            </div>
+            <div class="slider-container">
+                <label>HA Int. (g/kg) <input type="number" id="val_HAint" value="12.0" step="0.1"></label>
+                <input type="range" id="HAint" min="0" max="35" value="12.0" step="0.1">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>📊 Évaluation Nocturne</h3>
+            <label class="checkbox-container"><input type="checkbox" id="chk_eff"> 1. Efficace (T&lt;20, HA&lt;12)</label>
+            <label class="checkbox-container"><input type="checkbox" id="chk_fav"> 2. Favorable (T&lt;22, HA&lt;13.5)</label>
+            <label class="checkbox-container"><input type="checkbox" id="chk_lim"> 3. Limitée (T&lt;24, HA&lt;15)</label>
+            <label class="checkbox-container"><input type="checkbox" id="chk_nul"> 4. Nulle (T&gt;24 ou HA&gt;15)</label>
+        </div>
+    </div>
+
+    <div id="main">
+        <div class="header-title">Diagramme Psychrométrique Bioclimatique (Givoni)</div>
+        <div id="content-area">
+            <div id="chart-container"></div>
+            
+            <div id="stats-container">
+                <div class="stat-box">
+                    <h4>🏠 Données Intérieures</h4>
+                    <div class="stat-row"><span>T° Bulbe sec</span><span class="stat-val" id="st_Tint">--</span></div>
+                    <div class="stat-row"><span>Humidité Abs.</span><span class="stat-val" id="st_HAint">--</span></div>
+                    <div class="stat-row"><span>Humidité Rel.</span><span class="stat-val" id="st_HRint">--</span></div>
+                    <div class="stat-row"><span>Enthalpie</span><span class="stat-val" id="st_hint">--</span></div>
+                    <div class="stat-row"><span>Point de rosée</span><span class="stat-val" id="st_Tdint">--</span></div>
+                    <div class="stat-row"><span>T° Bulbe humide</span><span class="stat-val" id="st_Twint">--</span></div>
+                </div>
+                <br>
+                <div class="stat-box">
+                    <h4>🌐 Données Extérieures</h4>
+                    <div class="stat-row"><span>T° Bulbe sec</span><span class="stat-val" id="st_Text">--</span></div>
+                    <div class="stat-row"><span>Humidité Abs.</span><span class="stat-val" id="st_HAext">--</span></div>
+                    <div class="stat-row"><span>Humidité Rel.</span><span class="stat-val" id="st_HRext">--</span></div>
+                    <div class="stat-row"><span>Pression Atm.</span><span class="stat-val" id="st_P">--</span></div>
+                    <div class="stat-row"><span>Confort cible (Tc)</span><span class="stat-val" id="st_Tc">--</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. FONCTIONS PSYCHROMÉTRIQUES ---
+        const p_sat = (T) => 6.112 * Math.exp((17.67 * T) / (T + 243.5));
+        const rapport_melange = (T, HR, P) => {
+            let pv = p_sat(T) * (HR / 100);
+            return 621.98 * (pv / Math.max(P - pv, 0.01));
+        };
+        const ha_vers_hr = (HA, T, P) => {
+            let pv = (HA * P) / (621.98 + HA);
+            return (pv / p_sat(T)) * 100;
+        };
+        const point_rosee = (T, HR) => {
+            let a = 17.67, b = 243.5;
+            let ln_rh = Math.log(Math.max(HR / 100, 0.001));
+            let alpha = (a * T) / (b + T);
+            return (b * (alpha + ln_rh)) / (a - alpha - ln_rh);
+        };
+        const bulbe_humide = (T, HR, P) => {
+            let Td = point_rosee(T, HR);
+            return T - (0.00066 * P / 10) * (T - Td) * (1 + 0.00115 * Td);
+        };
+        const enthalpie = (T, HA) => 1.006 * T + (HA / 1000) * (2501 + 1.86 * T);
+
+        // --- 2. OUTILS POUR TABLEAUX ---
+        const linspace = (start, end, num) => {
+            const step = (end - start) / (num - 1);
+            return Array.from({length: num}, (_, i) => start + (step * i));
+        };
+
+        // --- 3. MOTEUR DE MISE À JOUR ---
+        function updateAll() {
+            // Lecture des inputs
+            const P = parseFloat(document.getElementById('P').value);
+            const Text = parseFloat(document.getElementById('Text').value);
+            const HAext = parseFloat(document.getElementById('HAext').value);
+            const Tint = parseFloat(document.getElementById('Tint').value);
+            const HAint = parseFloat(document.getElementById('HAint').value);
+            
+            const chk_eff = document.getElementById('chk_eff').checked;
+            const chk_fav = document.getElementById('chk_fav').checked;
+            const chk_lim = document.getElementById('chk_lim').checked;
+            const chk_nul = document.getElementById('chk_nul').checked;
+
+            // Constantes
+            const X_MAX = 52, Y_MAX = 35, pts = 60;
+            const T_range = linspace(0, X_MAX, 300);
+
+            // --- CALCUL DES STATISTIQUES ---
+            const HRint = ha_vers_hr(HAint, Tint, P);
+            const HRext = ha_vers_hr(HAext, Text, P);
+            const Tc = 0.31 * Text + 17.8;
+
+            document.getElementById('st_Tint').innerText = Tint.toFixed(1) + " °C";
+            document.getElementById('st_HAint').innerText = HAint.toFixed(2) + " g/kg";
+            
+            let hrIntElem = document.getElementById('st_HRint');
+            hrIntElem.innerText = HRint.toFixed(1) + " %";
+            hrIntElem.className = HRint > 100 ? "stat-val text-red" : "stat-val";
+
+            document.getElementById('st_hint').innerText = enthalpie(Tint, HAint).toFixed(1) + " kJ/kg";
+            document.getElementById('st_Tdint').innerText = point_rosee(Tint, HRint).toFixed(1) + " °C";
+            document.getElementById('st_Twint').innerText = bulbe_humide(Tint, HRint, P).toFixed(1) + " °C";
+            
+            document.getElementById('st_Text').innerText = Text.toFixed(1) + " °C";
+            document.getElementById('st_HAext').innerText = HAext.toFixed(2) + " g/kg";
+            document.getElementById('st_HRext').innerText = HRext.toFixed(1) + " %";
+            document.getElementById('st_P').innerText = P.toFixed(0) + " hPa";
+            document.getElementById('st_Tc').innerText = Tc.toFixed(1) + " °C";
+
+            // --- PRÉPARATION DES DONNÉES GRAPHIQUES ---
+            let traces = [];
+
+            // Background Zones (Checkboxes)
+            if (chk_eff || chk_fav || chk_lim || chk_nul) {
+                let T_fill = linspace(0, X_MAX, 200);
+                let HA_sat = T_fill.map(t => rapport_melange(t, 100, P));
+                let y_eff = T_fill.map((t,i) => t <= 20 ? Math.min(12.0, HA_sat[i]) : 0);
+                let y_fav = T_fill.map((t,i) => t <= 22 ? Math.min(13.5, HA_sat[i]) : 0);
+                let y_lim = T_fill.map((t,i) => t <= 24 ? Math.min(15.0, HA_sat[i]) : 0);
+
+                if(chk_eff) traces.push({x: T_fill, y: y_eff, fill: 'tozeroy', type: 'scatter', mode: 'none', fillcolor: 'rgba(39, 174, 96, 0.25)', hoverinfo: 'skip', showlegend: false});
+                if(chk_fav) traces.push({x: T_fill.concat(T_fill.slice().reverse()), y: y_fav.concat(y_eff.slice().reverse()), fill: 'toself', type: 'scatter', mode: 'none', fillcolor: 'rgba(46, 204, 113, 0.25)', hoverinfo: 'skip', showlegend: false});
+                if(chk_lim) traces.push({x: T_fill.concat(T_fill.slice().reverse()), y: y_lim.concat(y_fav.slice().reverse()), fill: 'toself', type: 'scatter', mode: 'none', fillcolor: 'rgba(243, 156, 18, 0.25)', hoverinfo: 'skip', showlegend: false});
+                if(chk_nul) traces.push({x: T_fill.concat(T_fill.slice().reverse()), y: HA_sat.concat(y_lim.slice().reverse()), fill: 'toself', type: 'scatter', mode: 'none', fillcolor: 'rgba(231, 76, 60, 0.25)', hoverinfo: 'skip', showlegend: false});
+            }
+
+            // Courbes HR (10% à 100%)
+            for (let hr = 10; hr <= 100; hr += 10) {
+                let r_vals = T_range.map(t => rapport_melange(t, hr, P));
+                let T_valid = [], r_valid = [];
+                for(let i=0; i<T_range.length; i++) {
+                    if(r_vals[i] <= Y_MAX) { T_valid.push(T_range[i]); r_valid.push(r_vals[i]); }
+                }
+                
+                let isSat = (hr === 100);
+                traces.push({
+                    x: T_valid, y: r_valid, type: 'scatter', mode: 'lines',
+                    line: {color: isSat ? 'black' : 'rgba(128,128,128,0.4)', width: isSat ? 2 : 1},
+                    hoverinfo: 'skip', showlegend: false
+                });
+                
+                if (T_valid.length > 0) {
+                    traces.push({
+                        x: [T_valid[T_valid.length-1]], y: [r_valid[r_valid.length-1]],
+                        text: [isSat ? '<b>100%</b>' : hr+'%'],
+                        mode: 'text', textposition: 'top left', textfont: {color: isSat ? 'black' : 'gray', size: 10},
+                        hoverinfo: 'skip', showlegend: false
+                    });
+                }
+            }
+
+            // Calculs Givoni
+            const Tmin = Tc - 3.5, Tmax = Tc + 3.5;
+            const f_s = (t, hr) => rapport_melange(t, hr, P);
+            const F_s = (t, hr) => Math.min(rapport_melange(t, hr, P), 16.0);
+            
+            // Point de transition (palier 16g/kg / 80%)
+            const pv_16 = (16.0 * P) / (621.98 + 16.0);
+            const psat_80 = pv_16 / 0.80;
+            const Y_val = Math.log(psat_80 / 6.112);
+            const Ttrans = (243.5 * Y_val) / (17.67 - Y_val);
+
+            // Bordure supérieure partagée
+            let T_shared = linspace(Tmax - 2, Tmin, pts);
+            if (Tmin < Ttrans && Ttrans < Tmax - 2) {
+                T_shared.push(Ttrans);
+                T_shared.sort((a,b) => b - a); // Tri décroissant
+            }
+            let bordure_sup = T_shared.map(t => [t, F_s(t, 80)]);
+
+            // Confort
+            let polyC = [];
+            linspace(Tmin, Tmax-2, pts).forEach(t => polyC.push([t, F_s(t, 80)]));
+            polyC.push([Tmax, F_s(Tmax, 50)]);
+            linspace(Tmax, Tmin, pts).forEach(t => polyC.push([t, F_s(t, 20)]));
+
+            // Vent. Nocturne
+            let polyV = [[Tmin, F_s(Tmin, 20)], [Tmin+24, F_s(Tmin, 20)], [Tmin+24, F_s(Tmin+24, 20)], [Tmax+13, F_s(Tmax-2, 80)], [Tmax-2, F_s(Tmax-2, 80)]];
+            linspace(Tmax-2, Tmin, pts).forEach(t => polyV.push([t, F_s(t, 80)]));
+
+            // Vent. Naturelle
+            let polyVN = [[Tmin, F_s(Tmin, 20)], [Tmin, f_s(Tmin, 100)]];
+            linspace(Tmin, Tmax, pts).forEach(t => polyVN.push([t, f_s(t, 100)]));
+            polyVN.push([Tmax+5, f_s(Tmax+5, 50)]); polyVN.push([Tmax+5, F_s(Tmax+5, 20)]);
+            linspace(Tmax+5, Tmin, pts).forEach(t => polyVN.push([t, F_s(t, 20)]));
+
+            // Masse
+            let polyM = [[Tmin, F_s(Tmin, 20)], [Tmin+17, F_s(Tmin, 20)], [Tmin+17, F_s(Tmin+17, 30)], [Tmax+8, F_s(Tmax-2, 80)]];
+            polyM = polyM.concat(bordure_sup);
+
+            // Evaporatif
+            let polyEC = [[Tmin, F_s(Tmin, 20)], [Tmin + 2.5 * F_s(Tmin, 20), 0], [Tmin+21, 0], [Tmin+21, F_s(Tmin+21, 10)], [Tmin+19, F_s(Tmin+19, 20)], [Tmin+16, F_s(Tmin+16, 30)]];
+            polyEC = polyEC.concat(bordure_sup);
+
+            const addPoly = (poly, fill, line, name) => {
+                if(poly.length === 0) return;
+                poly.push(poly[0]); // Fermer le polygone
+                traces.push({
+                    x: poly.map(p => p[0]), y: poly.map(p => p[1]),
+                    type: 'scatter', mode: 'lines', fill: 'toself',
+                    fillcolor: fill, line: {color: line, width: (name==='Confort' ? 1.5 : 1)},
+                    name: name, hoverinfo: 'name'
+                });
+            };
+
+            addPoly(polyV, 'rgba(235, 245, 251, 0.6)', 'black', 'Vent. Nocturne');
+            addPoly(polyVN, 'rgba(174, 214, 241, 0.5)', '#2471A3', 'Vent. Naturelle');
+            addPoly(polyM, 'rgba(250, 215, 160, 0.5)', '#D35400', 'Refr. de Masse');
+            addPoly(polyEC, 'rgba(210, 180, 222, 0.5)', '#7D3C98', 'Refr. Évaporatif');
+            addPoly(polyC, 'rgba(39, 174, 96, 0.45)', 'black', 'Confort');
+
+            // Points Bilan
+            traces.push({
+                x: [Text], y: [HAext], type: 'scatter', mode: 'markers',
+                marker: {color: '#3498DB', size: 10, line: {color:'white', width:1}},
+                name: 'Extérieur', hovertemplate: 'Extérieur<br>T: %{x}°C<br>HA: %{y:.1f}g/kg<extra></extra>'
+            });
+            traces.push({
+                x: [Tint], y: [HAint], type: 'scatter', mode: 'markers',
+                marker: {color: '#e74c3c', size: 12, symbol: 'cross', line: {color:'red', width:2}},
+                name: 'Intérieur', hovertemplate: 'Intérieur<br>T: %{x}°C<br>HA: %{y:.1f}g/kg<extra></extra>'
+            });
+
+            const layout = {
+                xaxis: {title: 'Température au bulbe sec (°C)', range: [0, X_MAX], dtick: 10, gridcolor: '#eee'},
+                yaxis: {title: "Humidité Absolue (g/kg d'air sec)", range: [0, Y_MAX], dtick: 5, gridcolor: '#eee'},
+                margin: {l: 50, r: 20, t: 30, b: 40},
+                legend: {x: 0.02, y: 0.98, bgcolor: 'rgba(255,255,255,0.8)', bordercolor: '#ddd', borderwidth: 1},
+                hovermode: 'closest',
+                plot_bgcolor: 'white', paper_bgcolor: 'white'
+            };
+
+            Plotly.react('chart-container', traces, layout, {responsive: true, displayModeBar: false});
+        }
+
+        // --- LIAISON DES ÉVÉNEMENTS (LIEN SLIDER <-> NUMÉRO) ---
+        const bindInput = (id) => {
+            const range = document.getElementById(id);
+            const num = document.getElementById('val_' + id);
+            range.addEventListener('input', () => { num.value = range.value; updateAll(); });
+            num.addEventListener('input', () => { range.value = num.value; updateAll(); });
+        };
+
+        ['P', 'Text', 'HAext', 'Tint', 'HAint'].forEach(bindInput);
+        ['chk_eff', 'chk_fav', 'chk_lim', 'chk_nul'].forEach(id => {
+            document.getElementById(id).addEventListener('change', updateAll);
+        });
+
+        // Premier affichage
+        updateAll();
+    </script>
+</body>
+</html>
