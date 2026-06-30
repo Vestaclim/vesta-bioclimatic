@@ -1,0 +1,181 @@
+# Vesta fan airflow mapping.
+#
+# Source dataset:
+# - Create Wind Stylance ABS S/M technical page for airflow and most RPM data.
+# - Create Wind Calm ABS S/M/L technical page to resolve the truncated S RPM row.
+# - Reused for the Natural Wood units because the working assumption is that
+#   motor, blade concept, and blade shape are close enough for control startup.
+#
+# Sign convention is configurable. Validate once on site with a ribbon test:
+# + speed blows into the occupied living space.
+# - speed aspirates from the occupied living space toward the ceiling.
+
+schema_version: 1
+
+geometry_source: config/house_geometry.yaml
+
+units:
+  diameter: m
+  hub_diameter: m
+  area: m2
+  volume: m3
+  ceiling_clearance: m
+  airflow: m3_min
+  angular_speed: rpm
+  air_speed: m_s
+
+control_convention:
+  signed_speed_range:
+    min: -6
+    max: 6
+  zero_mode: off
+  positive:
+    mode: blow_to_occupied_space
+    ha_direction: forward
+    felt_air_speed_available: true
+    description: Direct flow into the occupied zone. Use for elevated air speed comfort.
+  negative:
+    mode: aspirate_to_ceiling
+    ha_direction: reverse
+    felt_air_speed_available: false
+    description: Air is aspirated from the occupied zone toward the ceiling. Use as mixing/destratification flow, not occupant air speed.
+
+aspiration_ceiling_model:
+  description: Effective mixing factor applied to nominal airflow when pushing toward the ceiling.
+  formula: clamp(0.65 + 0.45 * ceiling_clearance_m / diameter_m, 0.65, 0.90)
+  notes:
+    - Living has about 0.30 m between fan and ceiling, so reverse flow is more constrained.
+    - Bureau has about 0.50 m between fan and ceiling, so reverse flow is less constrained.
+
+blade_sets:
+  create_wind_stylance_abs_s_112:
+    manufacturer: Create
+    family: Wind Stylance
+    borrowed_for: Wind Stylance Natural Wood S
+    size_label: S
+    diameter_m: 1.12
+    hub_diameter_m: 0.20
+    gross_disk_area_m2: 0.9852
+    effective_annulus_area_m2: 0.9538
+    hub_area_fraction_pct: 3.19
+    notes:
+      - The Wind Stylance ABS page can display the S RPM row as 100/130/160/180/220, missing speed 5.
+      - Create Wind Calm ABS multi-size tables publish the full S RPM row as 100/130/160/180/200/220 rpm.
+    speeds:
+      - speed: 1
+        rpm: 100
+        airflow_m3_min: 82
+      - speed: 2
+        rpm: 130
+        airflow_m3_min: 100
+      - speed: 3
+        rpm: 160
+        airflow_m3_min: 128
+      - speed: 4
+        rpm: 180
+        airflow_m3_min: 140
+      - speed: 5
+        rpm: 200
+        airflow_m3_min: 165
+        rpm_source: corroborated_by_create_wind_calm_abs_table
+      - speed: 6
+        rpm: 220
+        airflow_m3_min: 180
+
+  create_wind_stylance_abs_m_132:
+    manufacturer: Create
+    family: Wind Stylance
+    borrowed_for: Wind Stylance Natural Wood M
+    size_label: M
+    diameter_m: 1.32
+    hub_diameter_m: 0.20
+    gross_disk_area_m2: 1.3685
+    effective_annulus_area_m2: 1.3371
+    hub_area_fraction_pct: 2.30
+    speeds:
+      - speed: 1
+        rpm: 80
+        airflow_m3_min: 87
+      - speed: 2
+        rpm: 110
+        airflow_m3_min: 110
+      - speed: 3
+        rpm: 140
+        airflow_m3_min: 143
+      - speed: 4
+        rpm: 160
+        airflow_m3_min: 166
+      - speed: 5
+        rpm: 180
+        airflow_m3_min: 182
+      - speed: 6
+        rpm: 200
+        airflow_m3_min: 206
+
+rooms:
+  bureau:
+    label: Bureau
+    geometry_room: bureau
+    geometry_zone: desk_zone
+    blade_set: create_wind_stylance_abs_s_112
+    natural_wood_size: S
+    floor_area_m2: 14.0
+    fan_height_m: 2.70
+    ceiling_clearance_m: 0.50
+    estimated_ceiling_height_at_fan_m: 3.20
+    estimated_volume_m3: 44.8
+    geometry_source_fields:
+      - floor_area_m2
+      - fan_height_m
+      - ceiling_clearance_m
+      - estimated_ceiling_height_at_fan_m
+      - estimated_volume_m3
+      - occupant_air_speed_factor
+    geometry_notes:
+      - Floor is approximately 2.50 m by 5.60 m.
+      - Roof is slightly sloped, so volume is an estimate based on height at fan center.
+    occupant_air_speed_factor: 0.35
+    aspiration_ceiling_mixing_factor: 0.85
+    command_helper_entity_id: input_number.consigne_vitesse_ventilateur_bureau_signee
+    signal_helper_entity_id: input_number.consigne_ventilateur_bureau_signal_signe
+    signed_state_sensor_entity_id: sensor.ventilateur_bureau_vitesse_signee
+    fan_entity_id: fan.ventilateur
+    mapping_confidence: entity_id_inferred_from_existing_home_assistant_names
+
+  living:
+    label: Living
+    geometry_room: living
+    geometry_zone: default_living_zone
+    blade_set: create_wind_stylance_abs_m_132
+    natural_wood_size: M
+    floor_area_m2: 19.0
+    fan_height_m: 2.50
+    ceiling_clearance_m: 0.30
+    estimated_ceiling_height_m: 2.80
+    estimated_volume_m3: 53.2
+    geometry_source_fields:
+      - floor_area_m2
+      - fan_height_m
+      - ceiling_clearance_m
+      - estimated_ceiling_height_m
+      - estimated_volume_m3
+      - occupant_air_speed_factor
+    occupant_air_speed_factor: 0.28
+    aspiration_ceiling_mixing_factor: 0.75
+    command_helper_entity_id: input_number.consigne_vitesse_ventilateur_living_signee
+    signal_helper_entity_id: input_number.consigne_ventilateur_living_signal_signe
+    signed_state_sensor_entity_id: sensor.ventilateur_living_vitesse_signee
+    fan_entity_id: fan.plafonnier
+    mapping_confidence: entity_id_inferred_from_existing_home_assistant_names
+
+calculation_notes:
+  gross_disk_area_m2: pi * (diameter_m / 2)^2
+  effective_annulus_area_m2: gross_disk_area_m2 - pi * (hub_diameter_m / 2)^2
+  annulus_air_speed_m_s: airflow_m3_min / 60 / effective_annulus_area_m2
+  estimated_occupant_air_speed_m_s: annulus_air_speed_m_s * occupant_air_speed_factor
+  aspiration_effective_mixing_m3_min: airflow_m3_min * aspiration_ceiling_mixing_factor
+  equivalent_room_recirculations_per_h: airflow_m3_min * 60 / room_volume_m3
+  aspiration_equivalent_room_recirculations_per_h: aspiration_effective_mixing_m3_min * 60 / room_volume_m3
+  comfort_use:
+    - Use positive/blow estimated occupant air speed in ASHRAE elevated-air-speed comfort logic.
+    - Use negative/aspiration effective mixing flow for destratification and convection control, not as direct felt air speed.

@@ -1,0 +1,30 @@
+# InfluxDB mapping strategy for Vesta Python.
+#
+# La recommandation robuste est de declarer a la main les series Influx dans
+# site_house.yaml ou site_system.yaml. Ce fichier decrit les conventions utiles.
+
+schema_version: 1
+
+recommended_tags:
+  home: identifiant logement/site
+  group: etage ou module
+  space: piece, zone, entree, sortie
+  metric: temperature, humidity, co2, voc, command, actual
+  source: ha, jeedom, esp32, plc, python
+  entity_id: identifiant Home Assistant si disponible
+
+recommended_measurements:
+  climate:
+    fields: [temperature_c, rh_pct, co2_ppm, voc_ppb]
+  actuator:
+    fields: [command, actual, power_w, airflow_m3_h]
+  event:
+    fields: [value]
+    tags: [source, relation, reason]
+
+manual_mapping_flow:
+  - Exporter ou inspecter les measurements Influx existantes.
+  - Identifier pour chaque piece/module la temperature et l'humidite.
+  - Declarer ces series dans le YAML du site.
+  - Declarer les actionneurs avec command_metric et actual_metric separes.
+  - Laisser Vesta calculer les vues, scores et etats de synchronisation.

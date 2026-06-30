@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "vesta-dev-harness",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "4173", "--directory", "dev"],
+      "port": 4173
+    },
+    {
+      "name": "vesta-portable",
+      "runtimeExecutable": ".venv/bin/vesta-bioclimatic",
+      "runtimeArgs": ["serve", "--site", "config/site_house.yaml", "--values", "examples/latest_values.json", "--port", "8770"],
+      "port": 8770
+    }
+  ]
+}

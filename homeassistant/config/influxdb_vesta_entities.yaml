@@ -1,0 +1,59 @@
+# Vesta entities to include in an existing Home Assistant InfluxDB configuration.
+#
+# Do not paste this as a second top-level `influxdb:` block if one already
+# exists. Merge the `entities` list into the existing `influxdb.include.entities`
+# section, or keep InfluxDB broad enough to include sensor/input_number domains.
+
+entities:
+  - sensor.vesta_living_room_volume
+  - sensor.vesta_bureau_room_volume
+  - sensor.vesta_living_fan_signed_speed
+  - sensor.vesta_bureau_fan_signed_speed
+  - sensor.vesta_living_fan_nominal_airflow
+  - sensor.vesta_bureau_fan_nominal_airflow
+  - sensor.vesta_living_fan_annulus_air_speed
+  - sensor.vesta_bureau_fan_annulus_air_speed
+  - sensor.vesta_living_estimated_occupied_air_speed
+  - sensor.vesta_bureau_estimated_occupied_air_speed
+  - sensor.vesta_living_aspiration_mixing_flow
+  - sensor.vesta_bureau_aspiration_mixing_flow
+  - sensor.vesta_living_blow_recirculation_equivalent
+  - sensor.vesta_bureau_blow_recirculation_equivalent
+  - sensor.vesta_living_aspiration_recirculation_equivalent
+  - sensor.vesta_bureau_aspiration_recirculation_equivalent
+  - input_number.consigne_vitesse_ventilateur_living_signee
+  - input_number.consigne_vitesse_ventilateur_bureau_signee
+  - input_number.vesta_living_air_speed_transfer_factor
+  - input_number.vesta_bureau_air_speed_transfer_factor
+  - input_number.vesta_living_aspiration_ceiling_mixing_factor
+  - input_number.vesta_bureau_aspiration_ceiling_mixing_factor
+  - input_number.vesta_living_max_auto_signed_speed_day
+  - input_number.vesta_bureau_max_auto_signed_speed_day
+  - input_number.vesta_living_max_auto_signed_speed_night
+  - input_number.vesta_bureau_max_auto_signed_speed_night
+  - input_number.vesta_control_user_authority
+  - input_number.vesta_control_automation_aggressiveness
+  - input_number.vesta_living_last_requested_signed_speed
+  - input_number.vesta_bureau_last_requested_signed_speed
+  - input_number.vesta_living_last_observed_signed_speed
+  - input_number.vesta_bureau_last_observed_signed_speed
+  - input_select.vesta_living_pending_command_source
+  - input_select.vesta_bureau_pending_command_source
+  - input_select.vesta_living_last_command_source
+  - input_select.vesta_bureau_last_command_source
+  - input_select.vesta_living_last_command_relation
+  - input_select.vesta_bureau_last_command_relation
+  - input_datetime.vesta_living_pending_command_at
+  - input_datetime.vesta_bureau_pending_command_at
+  - input_datetime.vesta_living_last_command_at
+  - input_datetime.vesta_bureau_last_command_at
+  - input_text.vesta_living_pending_command_reason
+  - input_text.vesta_bureau_pending_command_reason
+  - input_text.vesta_living_last_command_note
+  - input_text.vesta_bureau_last_command_note
+  - sensor.vesta_living_last_command_age
+  - sensor.vesta_bureau_last_command_age
+  - sensor.vesta_living_command_deviation
+  - sensor.vesta_bureau_command_deviation
+  - sensor.vesta_living_command_trace_summary
+  - sensor.vesta_bureau_command_trace_summary

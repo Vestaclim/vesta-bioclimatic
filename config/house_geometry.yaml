@@ -1,0 +1,113 @@
+# Vesta house geometry model.
+#
+# This is the static and semi-static source of truth for room geometry.
+# Home Assistant should consume generated entities/helpers derived from this
+# file, while InfluxDB should store measurements, histories, and learned
+# coefficients over time.
+
+schema_version: 1
+
+units:
+  length: m
+  area: m2
+  volume: m3
+  angle: deg
+
+model_status:
+  precision: provisional
+  source: user_estimates
+  notes:
+    - Replace with measured room geometry when a 3D model is available.
+    - Vacuum maps may later refine floor plans and room boundaries.
+    - Solar exposure is intentionally left as a future model layer.
+
+rooms:
+  living:
+    label: Living
+    role: living_space
+    floor_area_m2: 19.0
+    height:
+      type: flat_estimate
+      ceiling_height_m: 2.80
+      source: fan_height_plus_ceiling_clearance
+    estimated_volume_m3: 53.2
+    fan_mount:
+      fan_key: living
+      fan_is_centered: true
+      fan_height_m: 2.50
+      clearance_above_fan_m: 0.30
+      ceiling_interaction: constrained_aspiration
+    occupancy_zones:
+      - key: default_living_zone
+        label: Zone de vie
+        position_status: approximate
+        air_speed_transfer_factor: 0.28
+        comfort_feedback_weight: 1.0
+    solar_exposure:
+      status: pending
+      future_inputs:
+        - facade_orientation
+        - glazing_area
+        - shading_state
+        - sun_position
+        - 3d_obstruction_model
+
+  bureau:
+    label: Bureau
+    role: office
+    floor_shape:
+      type: rectangle_estimate
+      length_m: 5.60
+      width_m: 2.50
+    floor_area_m2: 14.0
+    height:
+      type: sloped_roof_estimate
+      height_at_fan_center_m: 3.20
+      source: fan_height_plus_ceiling_clearance
+      confidence: approximate
+    estimated_volume_m3: 44.8
+    fan_mount:
+      fan_key: bureau
+      fan_is_centered: true
+      fan_height_m: 2.70
+      clearance_above_fan_m: 0.50
+      ceiling_interaction: moderate_aspiration
+    occupancy_zones:
+      - key: desk_zone
+        label: Bureau
+        position_status: approximate
+        air_speed_transfer_factor: 0.35
+        comfort_feedback_weight: 1.0
+    solar_exposure:
+      status: pending
+      future_inputs:
+        - roof_slope
+        - facade_orientation
+        - glazing_area
+        - shading_state
+        - sun_position
+        - 3d_obstruction_model
+
+calibration_policy:
+  source_of_truth:
+    geometry: this_file
+    live_adjustments: home_assistant_helpers
+    histories: influxdb
+  user_feedback_inputs:
+    too_hot:
+      expected_effect:
+        - increase desired occupant air speed when climate conditions allow.
+        - lower fan start threshold for similar future contexts.
+    too_cold_or_drafty:
+      expected_effect:
+        - reduce air speed transfer factor or maximum allowed blow speed.
+        - increase hysteresis around fan commands.
+    too_noisy:
+      expected_effect:
+        - reduce maximum allowed speed for the current room/time context.
+        - prefer longer low-speed operation over short high-speed operation.
+  safeguards:
+    - Bound coefficient changes per feedback event.
+    - Keep manual overrides visible and reversible.
+    - Store every coefficient update with timestamp, room, reason, and climate context.
+    - Separate comfort feedback from measured geometry; do not let subjective feedback rewrite dimensions.

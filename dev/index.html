@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vesta Psychro - harness local</title>
+<style>
+  html, body { margin: 0; min-height: 100%; background: #081016; }
+  #app { display: block; min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="/local/vesta-psychro/vesta-psychro-panel.js?v=8"></script>
+<script>
+  // Minimal standalone mock of the Home Assistant frontend `hass` object,
+  // built from the entity ids declared in CONFIG so the panel can be
+  // previewed and design-tested without a live Home Assistant instance.
+
+  function entity(state, unit, deviceClass) {
+    const attributes = {};
+    if (unit) attributes.unit_of_measurement = unit;
+    if (deviceClass) attributes.device_class = deviceClass;
+    return { state: String(state), attributes, last_changed: new Date().toISOString(), last_updated: new Date().toISOString() };
+  }
+
+  const states = {
+    "sensor.airthings_tern_co2_000557_pression_atmospherique": entity(1011, "hPa", "atmospheric_pressure"),
+
+    // Patio (exterieur)
+    "sensor.climat_patio_temperature": entity(26.9, "°C", "temperature"),
+    "sensor.climat_patio_humidite_relative": entity(41, "%", "humidity"),
+
+    // Salon
+    "sensor.climat_salon_temperature": entity(21.9, "°C", "temperature"),
+    "sensor.climat_salon_humidite_relative": entity(62, "%", "humidity"),
+
+    // Living
+    "sensor.climat_living_temperature": entity(23.4, "°C", "temperature"),
+    "sensor.climat_living_humidite_relative": entity(57, "%", "humidity"),
+    "input_number.consigne_vitesse_ventilateur_living_signee": entity(3, "niveau"),
+    "sensor.ventilateur_living_vitesse_signee": entity(2, "niveau"),
+    "sensor.vesta_living_fan_signed_speed": entity(2, "niveau"),
+    "sensor.vesta_living_room_volume": entity(53.2, "m³"),
+    "sensor.vesta_living_fan_nominal_airflow": entity(620, "m³/h"),
+    "sensor.vesta_living_fan_annulus_air_speed": entity(0.42, "m/s"),
+    "sensor.vesta_living_estimated_occupied_air_speed": entity(0.18, "m/s"),
+    "sensor.vesta_living_aspiration_mixing_flow": entity(310, "m³/h"),
+    "sensor.vesta_living_blow_recirculation_equivalent": entity(0.6, "x/h"),
+    "sensor.vesta_living_aspiration_recirculation_equivalent": entity(0.35, "x/h"),
+    "input_number.vesta_living_air_speed_transfer_factor": entity(0.32, "ratio"),
+    "input_number.vesta_living_aspiration_ceiling_mixing_factor": entity(0.7, "ratio"),
+    "input_select.vesta_living_last_command_source": entity("auto"),
+    "input_select.vesta_living_last_command_relation": entity("synced"),
+
+    // Cuisine
+    "sensor.climat_cuisine_temperature": entity(22.4, "°C", "temperature"),
+    "sensor.climat_cuisine_humidite_relative": entity(60, "%", "humidity"),
+
+    // Reserve
+    "sensor.climat_reserve_temperature": entity(21.5, "°C", "temperature"),
+    "sensor.climat_reserve_humidite_relative": entity(64, "%", "humidity"),
+
+    // Salle de bain
+    "sensor.climat_sdb_temperature": entity(21.9, "°C", "temperature"),
+    "sensor.climat_sdb_humidite_relative": entity(62, "%", "humidity"),
+
+    // Chambre 1 + qualite de l'air
+    "sensor.climat_chambre_temperature": entity(23.97, "°C", "temperature"),
+    "sensor.climat_chambre_humidite_relative": entity(54.62, "%", "humidity"),
+    "sensor.airthings_tern_co2_000557_dioxyde_de_carbone": entity(615, "ppm", "carbon_dioxide"),
+    "sensor.airthings_tern_co2_000557_composes_organiques_volatils_parties": entity(95, "ppb"),
+    "sensor.airthings_tern_co2_000557_ambient_noise": entity(38, "dB"),
+    "sensor.airthings_tern_co2_000557_eclairement": entity(120, "lx"),
+
+    // Bureau
+    "sensor.climat_bureau_sacha_temperature": entity(25.1, "°C", "temperature"),
+    "sensor.climat_bureau_sacha_humidite_relative": entity(50, "%", "humidity"),
+    "input_number.consigne_vitesse_ventilateur_bureau_sacha_signee": entity(-2, "niveau"),
+    "sensor.ventilateur_bureau_sacha_vitesse_signee": entity(-2, "niveau"),
+    "sensor.vesta_bureau_sacha_fan_signed_speed": entity(-2, "niveau"),
+    "sensor.vesta_bureau_sacha_room_volume": entity(38.5, "m³"),
+    "sensor.vesta_bureau_sacha_fan_nominal_airflow": entity(480, "m³/h"),
+    "sensor.vesta_bureau_sacha_fan_annulus_air_speed": entity(0.30, "m/s"),
+    "sensor.vesta_bureau_sacha_estimated_occupied_air_speed": entity(0.12, "m/s"),
+    "sensor.vesta_bureau_sacha_aspiration_mixing_flow": entity(210, "m³/h"),
+    "sensor.vesta_bureau_sacha_blow_recirculation_equivalent": entity(0.4, "x/h"),
+    "sensor.vesta_bureau_sacha_aspiration_recirculation_equivalent": entity(0.55, "x/h"),
+    "input_number.vesta_bureau_sacha_air_speed_transfer_factor": entity(0.28, "ratio"),
+    "input_number.vesta_bureau_sacha_aspiration_ceiling_mixing_factor": entity(0.65, "ratio"),
+    "input_select.vesta_bureau_sacha_last_command_source": entity("manual"),
+    "input_select.vesta_bureau_sacha_last_command_relation": entity("pending"),
+
+    // Chambre 2
+    "sensor.climat_chambre_juliana_temperature": entity(22.0, "°C", "temperature"),
+    "sensor.climat_chambre_juliana_humidite_relative": entity(55, "%", "humidity")
+  };
+
+  // Synthetic history: smooth day/night oscillation around the live value,
+  // good enough to exercise the trail/Tpma rendering paths.
+  function buildHistory(entityId, hours) {
+    const base = states[entityId];
+    const baseValue = Number(base?.state) || 20;
+    const isHumidity = base?.attributes?.unit_of_measurement === "%";
+    const amplitude = isHumidity ? 6 : 2.5;
+    const points = [];
+    const stepMin = 20;
+    const now = Date.now();
+    for (let m = hours * 60; m >= 0; m -= stepMin) {
+      const t = new Date(now - m * 60000);
+      const phase = (t.getHours() + t.getMinutes() / 60) / 24 * 2 * Math.PI;
+      const value = baseValue + Math.sin(phase - Math.PI / 2) * amplitude + (Math.random() - 0.5) * 0.3;
+      points.push({ state: value.toFixed(2), last_changed: t.toISOString() });
+    }
+    return points;
+  }
+
+  const hass = {
+    states,
+    callService(domain, service, data) {
+      console.log("[mock hass] callService", domain, service, data);
+      return Promise.resolve();
+    },
+    callWS(request) {
+      if (request.type === "config/area_registry/list") return Promise.resolve([]);
+      if (request.type === "config/floor_registry/list") return Promise.resolve([]);
+      if (request.type === "history/history_during_period") {
+        const start = new Date(request.start_time);
+        const end = new Date(request.end_time);
+        const hours = Math.max(1, (end - start) / 3600000);
+        const result = {};
+        (request.entity_ids || []).forEach(id => {
+          if (states[id]) result[id] = buildHistory(id, hours);
+        });
+        return Promise.resolve(result);
+      }
+      return Promise.resolve(null);
+    }
+  };
+
+  function mount() {
+    const tagName = window.VestaPsychroPanel?.element;
+    if (!tagName) {
+      window.setTimeout(mount, 30);
+      return;
+    }
+    const el = document.createElement(tagName);
+    el.hass = hass;
+    document.getElementById("app").appendChild(el);
+    // Re-apply periodically so the panel keeps refreshing like in HA.
+    window.setInterval(() => { el.hass = hass; }, 15000);
+  }
+  mount();
+</script>
+</body>
+</html>

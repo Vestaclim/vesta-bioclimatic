@@ -1,0 +1,12 @@
+{
+  "patio.temperature": 21.4,
+  "patio.humidity": 67.0,
+  "living.temperature": 21.5,
+  "living.humidity": 68.0,
+  "chambre.temperature": 22.1,
+  "chambre.humidity": 60.0,
+  "chambre.co2": 780.0,
+  "chambre.voc": 95.0,
+  "living_ceiling_fan.command": 3.0,
+  "living_ceiling_fan.actual": 2.0
+}

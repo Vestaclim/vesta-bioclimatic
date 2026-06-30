@@ -1,0 +1,10 @@
+panel_custom:
+  - name: vesta-psychro-panel-v202606130005
+    sidebar_title: Vesta Psychro
+    sidebar_icon: mdi:chart-bell-curve-cumulative
+    url_path: vesta-psychro
+    module_url: /local/vesta-psychro/vesta-psychro-panel.js?v=202606130005
+    require_admin: false
+    config:
+      title: Vesta Psychro
+      history_hours: 12

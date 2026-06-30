@@ -1,0 +1,93 @@
+# Vesta portable site config - systeme technique.
+#
+# Ici, les "etages" de l'interface deviennent des modules.
+# Le bouton d'affichage des groupes relie les capteurs d'un meme module:
+# entree/sortie echangeur, amont/aval extracteur, condenseur, batterie froide, etc.
+
+schema_version: 1
+site_key: vesta_systeme_air
+label: Systeme Air Vesta
+kind: system
+
+influx:
+  url: http://localhost:8086
+  org: vesta
+  bucket: hvac
+  token_env: VESTA_INFLUX_TOKEN
+  default_window: 30m
+
+groups:
+  exchanger: Echangeur double flux
+  condenser: Condenseur
+  extractor: Extracteur
+
+spaces:
+  exchanger_inlet:
+    label: Entrée échangeur
+    kind: system
+    group: exchanger
+    role: inlet
+    sensors:
+      temperature:
+        measurement: hvac_air
+        field: temperature_c
+        tags:
+          module: exchanger
+          port: inlet
+      humidity:
+        measurement: hvac_air
+        field: rh_pct
+        tags:
+          module: exchanger
+          port: inlet
+
+  exchanger_outlet:
+    label: Sortie échangeur
+    kind: system
+    group: exchanger
+    role: outlet
+    sensors:
+      temperature:
+        measurement: hvac_air
+        field: temperature_c
+        tags:
+          module: exchanger
+          port: outlet
+      humidity:
+        measurement: hvac_air
+        field: rh_pct
+        tags:
+          module: exchanger
+          port: outlet
+
+  condenser_air:
+    label: Air condenseur
+    kind: system
+    group: condenser
+    role: condenser_air
+    sensors:
+      temperature:
+        measurement: hvac_air
+        field: temperature_c
+        tags:
+          module: condenser
+      humidity:
+        measurement: hvac_air
+        field: rh_pct
+        tags:
+          module: condenser
+
+actuators:
+  extractor_fan:
+    label: Extracteur principal
+    kind: extractor
+    space: exchanger_outlet
+    command_metric: extractor_fan.command_pct
+    actual_metric: extractor_fan.actual_pct
+
+  heat_recovery_bypass:
+    label: Bypass échangeur
+    kind: heat_recovery
+    space: exchanger_outlet
+    command_metric: exchanger.bypass_command
+    actual_metric: exchanger.bypass_position

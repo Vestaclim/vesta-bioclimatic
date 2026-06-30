@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-06-05T07:30:00+02:00",
+  "outdoor": {
+    "temp_c": 15.8,
+    "rh_pct": 68,
+    "absolute_humidity_g_m3": 9.15,
+    "solar_w_m2": 120,
+    "wind_m_s": 1.8,
+    "rain_mm_h": 0.0
+  },
+  "rooms": [
+    {"name": "salon", "temp_c": 21.1, "rh_pct": 61, "absolute_humidity_g_m3": 10.87, "co2_ppm": 760, "voc_index": 110},
+    {"name": "living", "temp_c": 21.4, "rh_pct": 60, "absolute_humidity_g_m3": 10.87, "co2_ppm": 820, "voc_index": 130},
+    {"name": "cuisine", "temp_c": 22.4, "rh_pct": 59, "absolute_humidity_g_m3": 10.72, "co2_ppm": 780, "voc_index": 180},
+    {"name": "chambre", "temp_c": 20.7, "rh_pct": 63, "absolute_humidity_g_m3": 10.54, "co2_ppm": 1180, "voc_index": 260},
+    {"name": "bureau", "temp_c": 22.0, "rh_pct": 58, "absolute_humidity_g_m3": 10.67, "co2_ppm": 690, "voc_index": 90},
+    {"name": "chambre 2", "temp_c": 22.4, "rh_pct": 59, "absolute_humidity_g_m3": 10.72, "co2_ppm": 840, "voc_index": 140}
+  ],
+  "forecast": [
+    {"timestamp": "2026-06-05T08:00:00+02:00", "temp_c": 16.5, "rh_pct": 65, "solar_w_m2": 180},
+    {"timestamp": "2026-06-05T09:00:00+02:00", "temp_c": 18.2, "rh_pct": 60, "solar_w_m2": 330},
+    {"timestamp": "2026-06-05T10:00:00+02:00", "temp_c": 20.4, "rh_pct": 54, "solar_w_m2": 520},
+    {"timestamp": "2026-06-05T11:00:00+02:00", "temp_c": 22.5, "rh_pct": 48, "solar_w_m2": 650}
+  ],
+  "fans": [
+    {"entity_id": "fan.extraction_chambre", "room": "chambre", "is_on": false, "speed_pct": 0, "direction": "extraction"},
+    {"entity_id": "fan.brassage_living", "room": "living", "is_on": true, "speed_pct": 35, "direction": "brassage"}
+  ],
+  "openings": [
+    {"entity_id": "cover.volet_salon_sud", "room": "salon", "orientation": "sud", "is_open": true, "solar_exposed": true},
+    {"entity_id": "cover.fenetre_chambre_est", "room": "chambre", "orientation": "est", "is_open": false, "sheltered": true}
+  ],
+  "actuators": [
+    {"entity_id": "switch.shelly_chauffage_bureau", "room": "bureau", "kind": "shelly_heater", "is_on": false, "power_w": 1200}
+  ]
+}

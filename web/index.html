@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vesta Cockpit — portable</title>
+<style>
+  html, body { margin: 0; min-height: 100%; background: #081016; }
+  #app { display: block; min-height: 100vh; }
+  #boot { color: #9fb2ba; font: 14px system-ui, sans-serif; padding: 24px; }
+</style>
+</head>
+<body>
+<div id="app"><div id="boot">Chargement du cockpit portable…</div></div>
+<!-- Same panel as Home Assistant, served by the Python bridge and fed the
+     CockpitView from /api/cockpit instead of Home Assistant entities. -->
+<script src="/static/vesta-psychro-panel.js"></script>
+<script>
+  // Transport is the host page's concern: prefer the SSE live push, fall back to
+  // polling /api/cockpit if Server-Sent Events are unavailable or never connect.
+  // The panel stays transport-agnostic — it just receives a CockpitView.
+  const POLL_MS = 5000;
+  let panelEl = null;
+  let pollTimer = null;
+  let gotSSE = false;
+
+  function setView(view) {
+    if (!view) return;
+    if (!panelEl) {
+      const tagName = window.VestaPsychroPanel?.element;
+      if (!tagName) { window.setTimeout(() => setView(view), 30); return; }
+      const app = document.getElementById("app");
+      app.innerHTML = "";
+      panelEl = document.createElement(tagName);
+      app.appendChild(panelEl);
+    }
+    panelEl.cockpit = view;
+  }
+
+  function showError(message) {
+    const boot = document.getElementById("boot");
+    if (boot) boot.textContent = `Cockpit indisponible : ${message}`;
+  }
+
+  async function pollOnce() {
+    try {
+      const response = await fetch("/api/cockpit", { cache: "no-store" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      setView(await response.json());
+    } catch (error) {
+      showError(error.message);
+      console.warn("[vesta portable]", error);
+    }
+  }
+
+  function startPolling() {
+    if (pollTimer) return;
+    pollOnce();
+    pollTimer = window.setInterval(pollOnce, POLL_MS);
+  }
+
+  function stopPolling() {
+    if (pollTimer) { window.clearInterval(pollTimer); pollTimer = null; }
+  }
+
+  function start() {
+    if (!window.EventSource) { startPolling(); return; }
+    const source = new EventSource("/api/stream");
+    source.addEventListener("cockpit", event => {
+      gotSSE = true;
+      stopPolling();
+      try { setView(JSON.parse(event.data)); } catch (_) { /* ignore malformed frame */ }
+    });
+    source.onerror = () => { if (!gotSSE) startPolling(); };  // only fall back if SSE never delivered
+    // Safety net: poll meanwhile; SSE takes over and stops it on first frame.
+    window.setTimeout(() => { if (!gotSSE) startPolling(); }, 4000);
+  }
+  start();
+</script>
+</body>
+</html>

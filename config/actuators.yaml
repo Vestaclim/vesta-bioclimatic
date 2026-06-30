@@ -1,0 +1,37 @@
+# Actuator modelling notes.
+#
+# Ce fichier peut etre fusionne dans site_house.yaml/site_system.yaml, ou garde
+# separement si un installateur veut gerer plusieurs profils d'actionneurs.
+
+schema_version: 1
+
+actuator_kinds:
+  ceiling_fan:
+    signed_control: true
+    signed_range: [-6, 6]
+    positive: souffle vers la zone de vie
+    negative: aspiration vers le plafond ou destratification
+    feedback_required_for_confirmation: true
+
+  vmc:
+    signed_control: false
+    command_unit: "%"
+    actual_feedback: debit_m3_h or speed_pct
+    notes:
+      - Peut servir de renouvellement d'air ou de purge hygrique.
+      - Differencier VMC simple flux, double flux et bypass.
+
+  heater:
+    signed_control: false
+    command_unit: W or target_c
+    safety:
+      - puissance maximale
+      - duree maximale
+      - presence
+
+  humidifier:
+    signed_control: false
+    command_unit: "%"
+    safety:
+      - borne humidite relative
+      - risque condensation

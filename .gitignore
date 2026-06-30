@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+.claude/settings.local.json
+# Panel-applied connectivity (may hold tokens/passwords) + mapping overlay; never commit
+.vesta_connectivity.json
+**/.vesta_connectivity.json
+.vesta_mapping.json
+**/.vesta_mapping.json

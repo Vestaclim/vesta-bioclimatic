@@ -1,0 +1,126 @@
+# Vesta portable site config - habitation.
+#
+# Principe robuste:
+# 1. Les mesures existent deja dans InfluxDB.
+# 2. On declare ici ce que chaque serie signifie pour Vesta.
+# 3. Python lit ce fichier, interroge InfluxDB cote serveur, puis produit un snapshot/cockpit.
+# 4. Aucun token InfluxDB ne va dans le navigateur.
+
+schema_version: 1
+site_key: vesta_maison
+label: Maison Vesta
+kind: home
+
+influx:
+  url: http://localhost:8086
+  org: vesta
+  bucket: homeassistant
+  token_env: VESTA_INFLUX_TOKEN
+  default_window: 2h
+  verify_ssl: true
+
+# Optionnel: broker MQTT pour les valeurs live en mode portable (--live mqtt).
+# Topics normalises sous base_topic: <base>/<espace>/<metrique> (numerique)
+# ou <base>/<espace>/state (JSON). Le mot de passe vit dans une variable d'env.
+# mqtt:
+#   host: 127.0.0.1
+#   port: 1883
+#   base_topic: vesta
+#   username: vesta
+#   password_env: VESTA_MQTT_PASSWORD
+#   tls: false
+
+# Pour un logement, les groupes sont des etages ou zones de circulation.
+groups:
+  exterior: Extérieur
+  rdc: RDC
+  floor_1: "1"
+  floor_2: "2"
+
+# Metric names normalisees attendues par Vesta:
+# - temperature: temperature seche en degC
+# - humidity: humidite relative en %
+# - co2: ppm, optionnel
+# - voc: indice ou ppb, optionnel
+# - solar, wind, rain: optionnels pour exterieur
+spaces:
+  patio:
+    label: Patio
+    kind: exterior
+    group: exterior
+    role: reference_air_neuf
+    orientation_deg: 180
+    sensors:
+      temperature:
+        measurement: "°C"
+        field: value
+        tags:
+          entity_id: sensor.climat_patio_temperature
+        unit: "°C"
+      humidity:
+        measurement: "%"
+        field: value
+        tags:
+          entity_id: sensor.climat_patio_humidite_relative
+        unit: "%"
+
+  living:
+    label: Living
+    kind: interior
+    group: rdc
+    role: living_space
+    floor_area_m2: 19.0
+    volume_m3: 53.2
+    sensors:
+      temperature:
+        measurement: "°C"
+        field: value
+        tags:
+          entity_id: sensor.climat_living_temperature
+        unit: "°C"
+      humidity:
+        measurement: "%"
+        field: value
+        tags:
+          entity_id: sensor.climat_living_humidite_relative
+        unit: "%"
+
+  chambre:
+    label: Chambre
+    kind: interior
+    group: floor_1
+    role: bedroom
+    sensors:
+      temperature:
+        measurement: "°C"
+        field: value
+        tags:
+          entity_id: sensor.climat_chambre_temperature
+      humidity:
+        measurement: "%"
+        field: value
+        tags:
+          entity_id: sensor.climat_chambre_humidite_relative
+      co2:
+        measurement: ppm
+        field: value
+        tags:
+          entity_id: sensor.airthings_tern_co2_000557_dioxyde_de_carbone
+      voc:
+        measurement: ppb
+        field: value
+        tags:
+          entity_id: sensor.airthings_tern_co2_000557_composes_organiques_volatils_parties
+
+actuators:
+  living_ceiling_fan:
+    label: Ventilateur Living
+    kind: ceiling_fan
+    space: living
+    model_key: living
+    signed_min: -6
+    signed_max: 6
+    # Metric cote Influx contenant la consigne demandee.
+    command_metric: living_ceiling_fan.command
+    # Metric cote Influx contenant le retour reel appareil, si disponible.
+    actual_metric: living_ceiling_fan.actual

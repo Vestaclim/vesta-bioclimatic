@@ -1,0 +1,810 @@
+# Vesta house model, fan coefficients, and calculated airflow sensors.
+#
+# This package is generated from the current provisional Vesta model:
+# - config/house_geometry.yaml
+# - config/fan_airflow.yaml
+#
+# Positive signed fan speed blows into the occupied living space.
+# Negative signed fan speed aspirates from the occupied living space toward the ceiling.
+
+input_number:
+  vesta_living_air_speed_transfer_factor:
+    name: Vesta Living Air Speed Transfer Factor
+    min: 0.05
+    max: 0.80
+    step: 0.01
+    mode: box
+    icon: mdi:fan-chevron-up
+
+  vesta_bureau_air_speed_transfer_factor:
+    name: Vesta Bureau Air Speed Transfer Factor
+    min: 0.05
+    max: 0.80
+    step: 0.01
+    mode: box
+    icon: mdi:fan-chevron-up
+
+  vesta_living_aspiration_ceiling_mixing_factor:
+    name: Vesta Living Aspiration Ceiling Mixing Factor
+    min: 0.40
+    max: 1.00
+    step: 0.01
+    mode: box
+    icon: mdi:fan-chevron-down
+
+  vesta_bureau_aspiration_ceiling_mixing_factor:
+    name: Vesta Bureau Aspiration Ceiling Mixing Factor
+    min: 0.40
+    max: 1.00
+    step: 0.01
+    mode: box
+    icon: mdi:fan-chevron-down
+
+  vesta_living_max_auto_signed_speed_day:
+    name: Vesta Living Max Auto Signed Speed Day
+    min: 0
+    max: 6
+    step: 1
+    mode: slider
+    icon: mdi:fan-auto
+
+  vesta_bureau_max_auto_signed_speed_day:
+    name: Vesta Bureau Max Auto Signed Speed Day
+    min: 0
+    max: 6
+    step: 1
+    mode: slider
+    icon: mdi:fan-auto
+
+  vesta_living_max_auto_signed_speed_night:
+    name: Vesta Living Max Auto Signed Speed Night
+    min: 0
+    max: 6
+    step: 1
+    mode: slider
+    icon: mdi:weather-night
+
+  vesta_bureau_max_auto_signed_speed_night:
+    name: Vesta Bureau Max Auto Signed Speed Night
+    min: 0
+    max: 6
+    step: 1
+    mode: slider
+    icon: mdi:weather-night
+
+  vesta_control_user_authority:
+    name: Vesta Control User Authority
+    min: 0
+    max: 1
+    step: 0.05
+    mode: slider
+    icon: mdi:account-check
+
+  vesta_control_automation_aggressiveness:
+    name: Vesta Control Automation Aggressiveness
+    min: 0
+    max: 1
+    step: 0.05
+    mode: slider
+    icon: mdi:robot
+
+  vesta_living_last_requested_signed_speed:
+    name: Vesta Living Last Requested Signed Speed
+    min: -6
+    max: 6
+    step: 1
+    mode: box
+    icon: mdi:target
+
+  vesta_bureau_last_requested_signed_speed:
+    name: Vesta Bureau Last Requested Signed Speed
+    min: -6
+    max: 6
+    step: 1
+    mode: box
+    icon: mdi:target
+
+  vesta_living_last_observed_signed_speed:
+    name: Vesta Living Last Observed Signed Speed
+    min: -6
+    max: 6
+    step: 1
+    mode: box
+    icon: mdi:eye
+
+  vesta_bureau_last_observed_signed_speed:
+    name: Vesta Bureau Last Observed Signed Speed
+    min: -6
+    max: 6
+    step: 1
+    mode: box
+    icon: mdi:eye
+
+input_select:
+  vesta_living_pending_command_source:
+    name: Vesta Living Pending Command Source
+    options:
+      - none
+      - vesta_panel
+      - vesta_control_engine
+      - ha_user
+      - ha_automation
+      - external_device_or_cloud
+      - unknown
+    icon: mdi:source-branch
+
+  vesta_bureau_pending_command_source:
+    name: Vesta Bureau Pending Command Source
+    options:
+      - none
+      - vesta_panel
+      - vesta_control_engine
+      - ha_user
+      - ha_automation
+      - external_device_or_cloud
+      - unknown
+    icon: mdi:source-branch
+
+  vesta_living_last_command_source:
+    name: Vesta Living Last Command Source
+    options:
+      - none
+      - vesta_panel
+      - vesta_control_engine
+      - ha_user
+      - ha_automation
+      - external_device_or_cloud
+      - matched_vesta_trajectory
+      - unmatched_user_override
+      - unknown
+    icon: mdi:source-branch-check
+
+  vesta_bureau_last_command_source:
+    name: Vesta Bureau Last Command Source
+    options:
+      - none
+      - vesta_panel
+      - vesta_control_engine
+      - ha_user
+      - ha_automation
+      - external_device_or_cloud
+      - matched_vesta_trajectory
+      - unmatched_user_override
+      - unknown
+    icon: mdi:source-branch-check
+
+  vesta_living_last_command_relation:
+    name: Vesta Living Last Command Relation
+    options:
+      - none
+      - follows_pending_command
+      - close_to_pending_command
+      - diverges_from_pending_command
+      - external_without_pending_command
+    icon: mdi:vector-difference
+
+  vesta_bureau_last_command_relation:
+    name: Vesta Bureau Last Command Relation
+    options:
+      - none
+      - follows_pending_command
+      - close_to_pending_command
+      - diverges_from_pending_command
+      - external_without_pending_command
+    icon: mdi:vector-difference
+
+input_datetime:
+  vesta_living_pending_command_at:
+    name: Vesta Living Pending Command At
+    has_date: true
+    has_time: true
+    icon: mdi:clock-start
+
+  vesta_bureau_pending_command_at:
+    name: Vesta Bureau Pending Command At
+    has_date: true
+    has_time: true
+    icon: mdi:clock-start
+
+  vesta_living_last_command_at:
+    name: Vesta Living Last Command At
+    has_date: true
+    has_time: true
+    icon: mdi:clock-check-outline
+
+  vesta_bureau_last_command_at:
+    name: Vesta Bureau Last Command At
+    has_date: true
+    has_time: true
+    icon: mdi:clock-check-outline
+
+input_text:
+  vesta_living_pending_command_reason:
+    name: Vesta Living Pending Command Reason
+    min: 0
+    max: 255
+    mode: text
+    icon: mdi:text-box-edit-outline
+
+  vesta_bureau_pending_command_reason:
+    name: Vesta Bureau Pending Command Reason
+    min: 0
+    max: 255
+    mode: text
+    icon: mdi:text-box-edit-outline
+
+  vesta_living_last_command_note:
+    name: Vesta Living Last Command Note
+    min: 0
+    max: 255
+    mode: text
+    icon: mdi:note-text-outline
+
+  vesta_bureau_last_command_note:
+    name: Vesta Bureau Last Command Note
+    min: 0
+    max: 255
+    mode: text
+    icon: mdi:note-text-outline
+
+script:
+  vesta_register_fan_command_intent:
+    alias: Vesta Register Fan Command Intent
+    mode: queued
+    fields:
+      room:
+        name: Room
+        required: true
+        selector:
+          select:
+            options:
+              - living
+              - bureau
+      signed_speed:
+        name: Signed speed
+        required: true
+        selector:
+          number:
+            min: -6
+            max: 6
+            step: 1
+      source:
+        name: Source
+        required: true
+        selector:
+          select:
+            options:
+              - vesta_panel
+              - vesta_control_engine
+              - ha_user
+              - ha_automation
+              - external_device_or_cloud
+              - unknown
+      reason:
+        name: Reason
+        required: false
+        selector:
+          text:
+    sequence:
+      - variables:
+          room_key: "{{ room }}"
+          speed: "{{ signed_speed | int(0) }}"
+          source_option: "{{ source }}"
+          reason_text: "{{ reason | default('none', true) }}"
+          requested_entity: >-
+            {{ 'input_number.vesta_living_last_requested_signed_speed'
+               if room_key == 'living'
+               else 'input_number.vesta_bureau_last_requested_signed_speed' }}
+          pending_source_entity: >-
+            {{ 'input_select.vesta_living_pending_command_source'
+               if room_key == 'living'
+               else 'input_select.vesta_bureau_pending_command_source' }}
+          pending_at_entity: >-
+            {{ 'input_datetime.vesta_living_pending_command_at'
+               if room_key == 'living'
+               else 'input_datetime.vesta_bureau_pending_command_at' }}
+          pending_reason_entity: >-
+            {{ 'input_text.vesta_living_pending_command_reason'
+               if room_key == 'living'
+               else 'input_text.vesta_bureau_pending_command_reason' }}
+      - action: input_number.set_value
+        target:
+          entity_id: "{{ requested_entity }}"
+        data:
+          value: "{{ speed }}"
+      - action: input_select.select_option
+        target:
+          entity_id: "{{ pending_source_entity }}"
+        data:
+          option: "{{ source_option }}"
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: "{{ pending_at_entity }}"
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+      - action: input_text.set_value
+        target:
+          entity_id: "{{ pending_reason_entity }}"
+        data:
+          value: "{{ reason_text[:255] }}"
+
+template:
+  - sensor:
+      - name: Vesta Living Room Volume
+        unique_id: vesta_living_room_volume
+        unit_of_measurement: "m3"
+        state_class: measurement
+        icon: mdi:cube-outline
+        state: "53.2"
+        attributes:
+          floor_area_m2: 19.0
+          ceiling_height_m: 2.80
+          fan_height_m: 2.50
+          clearance_above_fan_m: 0.30
+          geometry_source: config/house_geometry.yaml
+
+      - name: Vesta Bureau Room Volume
+        unique_id: vesta_bureau_room_volume
+        unit_of_measurement: "m3"
+        state_class: measurement
+        icon: mdi:cube-outline
+        state: "44.8"
+        attributes:
+          floor_area_m2: 14.0
+          length_m: 5.60
+          width_m: 2.50
+          height_at_fan_center_m: 3.20
+          fan_height_m: 2.70
+          clearance_above_fan_m: 0.50
+          geometry_source: config/house_geometry.yaml
+
+      - name: Vesta Living Fan Signed Speed
+        unique_id: vesta_living_fan_signed_speed
+        unit_of_measurement: "step"
+        state_class: measurement
+        icon: mdi:fan
+        availability: >-
+          {{ has_value('sensor.ventilateur_living_vitesse_signee')
+             or has_value('input_number.consigne_vitesse_ventilateur_living_signee') }}
+        state: >-
+          {% if has_value('sensor.ventilateur_living_vitesse_signee') %}
+            {{ states('sensor.ventilateur_living_vitesse_signee') | int(0) }}
+          {% else %}
+            {{ states('input_number.consigne_vitesse_ventilateur_living_signee') | int(0) }}
+          {% endif %}
+        attributes:
+          positive: blow_to_occupied_space
+          negative: aspirate_to_ceiling
+          command_helper: input_number.consigne_vitesse_ventilateur_living_signee
+
+      - name: Vesta Bureau Fan Signed Speed
+        unique_id: vesta_bureau_fan_signed_speed
+        unit_of_measurement: "step"
+        state_class: measurement
+        icon: mdi:fan
+        availability: >-
+          {{ has_value('sensor.ventilateur_bureau_vitesse_signee')
+             or has_value('input_number.consigne_vitesse_ventilateur_bureau_signee') }}
+        state: >-
+          {% if has_value('sensor.ventilateur_bureau_vitesse_signee') %}
+            {{ states('sensor.ventilateur_bureau_vitesse_signee') | int(0) }}
+          {% else %}
+            {{ states('input_number.consigne_vitesse_ventilateur_bureau_signee') | int(0) }}
+          {% endif %}
+        attributes:
+          positive: blow_to_occupied_space
+          negative: aspirate_to_ceiling
+          command_helper: input_number.consigne_vitesse_ventilateur_bureau_signee
+
+      - name: Vesta Living Fan Nominal Airflow
+        unique_id: vesta_living_fan_nominal_airflow
+        unit_of_measurement: "m3/min"
+        state_class: measurement
+        icon: mdi:weather-windy
+        availability: "{{ has_value('sensor.vesta_living_fan_signed_speed') }}"
+        state: >-
+          {% set speed = states('sensor.vesta_living_fan_signed_speed') | int(0) | abs %}
+          {% set flows = {1: 87, 2: 110, 3: 143, 4: 166, 5: 182, 6: 206} %}
+          {{ flows.get(speed, 0) }}
+
+      - name: Vesta Bureau Fan Nominal Airflow
+        unique_id: vesta_bureau_fan_nominal_airflow
+        unit_of_measurement: "m3/min"
+        state_class: measurement
+        icon: mdi:weather-windy
+        availability: "{{ has_value('sensor.vesta_bureau_fan_signed_speed') }}"
+        state: >-
+          {% set speed = states('sensor.vesta_bureau_fan_signed_speed') | int(0) | abs %}
+          {% set flows = {1: 82, 2: 100, 3: 128, 4: 140, 5: 165, 6: 180} %}
+          {{ flows.get(speed, 0) }}
+
+      - name: Vesta Living Fan Annulus Air Speed
+        unique_id: vesta_living_fan_annulus_air_speed
+        unit_of_measurement: "m/s"
+        state_class: measurement
+        icon: mdi:windsock
+        availability: "{{ has_value('sensor.vesta_living_fan_nominal_airflow') }}"
+        state: >-
+          {% set q = states('sensor.vesta_living_fan_nominal_airflow') | float(0) %}
+          {{ (q / 60 / 1.3371) | round(2) }}
+        attributes:
+          effective_annulus_area_m2: 1.3371
+          gross_disk_area_m2: 1.3685
+          hub_diameter_m: 0.20
+
+      - name: Vesta Bureau Fan Annulus Air Speed
+        unique_id: vesta_bureau_fan_annulus_air_speed
+        unit_of_measurement: "m/s"
+        state_class: measurement
+        icon: mdi:windsock
+        availability: "{{ has_value('sensor.vesta_bureau_fan_nominal_airflow') }}"
+        state: >-
+          {% set q = states('sensor.vesta_bureau_fan_nominal_airflow') | float(0) %}
+          {{ (q / 60 / 0.9538) | round(2) }}
+        attributes:
+          effective_annulus_area_m2: 0.9538
+          gross_disk_area_m2: 0.9852
+          hub_diameter_m: 0.20
+
+      - name: Vesta Living Estimated Occupied Air Speed
+        unique_id: vesta_living_estimated_occupied_air_speed
+        unit_of_measurement: "m/s"
+        state_class: measurement
+        icon: mdi:sofa-outline
+        availability: >-
+          {{ has_value('sensor.vesta_living_fan_signed_speed')
+             and has_value('sensor.vesta_living_fan_annulus_air_speed')
+             and has_value('input_number.vesta_living_air_speed_transfer_factor') }}
+        state: >-
+          {% set signed = states('sensor.vesta_living_fan_signed_speed') | int(0) %}
+          {% set annulus = states('sensor.vesta_living_fan_annulus_air_speed') | float(0) %}
+          {% set factor = states('input_number.vesta_living_air_speed_transfer_factor') | float(0.28) %}
+          {{ (annulus * factor if signed > 0 else 0) | round(2) }}
+        attributes:
+          transfer_factor_entity: input_number.vesta_living_air_speed_transfer_factor
+          mode: positive_speed_only
+
+      - name: Vesta Bureau Estimated Occupied Air Speed
+        unique_id: vesta_bureau_estimated_occupied_air_speed
+        unit_of_measurement: "m/s"
+        state_class: measurement
+        icon: mdi:desk
+        availability: >-
+          {{ has_value('sensor.vesta_bureau_fan_signed_speed')
+             and has_value('sensor.vesta_bureau_fan_annulus_air_speed')
+             and has_value('input_number.vesta_bureau_air_speed_transfer_factor') }}
+        state: >-
+          {% set signed = states('sensor.vesta_bureau_fan_signed_speed') | int(0) %}
+          {% set annulus = states('sensor.vesta_bureau_fan_annulus_air_speed') | float(0) %}
+          {% set factor = states('input_number.vesta_bureau_air_speed_transfer_factor') | float(0.35) %}
+          {{ (annulus * factor if signed > 0 else 0) | round(2) }}
+        attributes:
+          transfer_factor_entity: input_number.vesta_bureau_air_speed_transfer_factor
+          mode: positive_speed_only
+
+      - name: Vesta Living Aspiration Mixing Flow
+        unique_id: vesta_living_aspiration_mixing_flow
+        unit_of_measurement: "m3/min"
+        state_class: measurement
+        icon: mdi:fan-chevron-down
+        availability: >-
+          {{ has_value('sensor.vesta_living_fan_signed_speed')
+             and has_value('sensor.vesta_living_fan_nominal_airflow')
+             and has_value('input_number.vesta_living_aspiration_ceiling_mixing_factor') }}
+        state: >-
+          {% set signed = states('sensor.vesta_living_fan_signed_speed') | int(0) %}
+          {% set q = states('sensor.vesta_living_fan_nominal_airflow') | float(0) %}
+          {% set factor = states('input_number.vesta_living_aspiration_ceiling_mixing_factor') | float(0.75) %}
+          {{ (q * factor if signed < 0 else 0) | round(0) }}
+        attributes:
+          mixing_factor_entity: input_number.vesta_living_aspiration_ceiling_mixing_factor
+          mode: negative_speed_only
+
+      - name: Vesta Bureau Aspiration Mixing Flow
+        unique_id: vesta_bureau_aspiration_mixing_flow
+        unit_of_measurement: "m3/min"
+        state_class: measurement
+        icon: mdi:fan-chevron-down
+        availability: >-
+          {{ has_value('sensor.vesta_bureau_fan_signed_speed')
+             and has_value('sensor.vesta_bureau_fan_nominal_airflow')
+             and has_value('input_number.vesta_bureau_aspiration_ceiling_mixing_factor') }}
+        state: >-
+          {% set signed = states('sensor.vesta_bureau_fan_signed_speed') | int(0) %}
+          {% set q = states('sensor.vesta_bureau_fan_nominal_airflow') | float(0) %}
+          {% set factor = states('input_number.vesta_bureau_aspiration_ceiling_mixing_factor') | float(0.85) %}
+          {{ (q * factor if signed < 0 else 0) | round(0) }}
+        attributes:
+          mixing_factor_entity: input_number.vesta_bureau_aspiration_ceiling_mixing_factor
+          mode: negative_speed_only
+
+      - name: Vesta Living Blow Recirculation Equivalent
+        unique_id: vesta_living_blow_recirculation_equivalent
+        unit_of_measurement: "vol/h"
+        state_class: measurement
+        icon: mdi:rotate-3d-variant
+        availability: >-
+          {{ has_value('sensor.vesta_living_fan_signed_speed')
+             and has_value('sensor.vesta_living_fan_nominal_airflow') }}
+        state: >-
+          {% set signed = states('sensor.vesta_living_fan_signed_speed') | int(0) %}
+          {% set q = states('sensor.vesta_living_fan_nominal_airflow') | float(0) %}
+          {{ (q * 60 / 53.2 if signed > 0 else 0) | round(0) }}
+        attributes:
+          room_volume_m3: 53.2
+
+      - name: Vesta Bureau Blow Recirculation Equivalent
+        unique_id: vesta_bureau_blow_recirculation_equivalent
+        unit_of_measurement: "vol/h"
+        state_class: measurement
+        icon: mdi:rotate-3d-variant
+        availability: >-
+          {{ has_value('sensor.vesta_bureau_fan_signed_speed')
+             and has_value('sensor.vesta_bureau_fan_nominal_airflow') }}
+        state: >-
+          {% set signed = states('sensor.vesta_bureau_fan_signed_speed') | int(0) %}
+          {% set q = states('sensor.vesta_bureau_fan_nominal_airflow') | float(0) %}
+          {{ (q * 60 / 44.8 if signed > 0 else 0) | round(0) }}
+        attributes:
+          room_volume_m3: 44.8
+
+      - name: Vesta Living Aspiration Recirculation Equivalent
+        unique_id: vesta_living_aspiration_recirculation_equivalent
+        unit_of_measurement: "vol/h"
+        state_class: measurement
+        icon: mdi:rotate-3d
+        availability: "{{ has_value('sensor.vesta_living_aspiration_mixing_flow') }}"
+        state: >-
+          {% set q = states('sensor.vesta_living_aspiration_mixing_flow') | float(0) %}
+          {{ (q * 60 / 53.2) | round(0) }}
+        attributes:
+          room_volume_m3: 53.2
+
+      - name: Vesta Bureau Aspiration Recirculation Equivalent
+        unique_id: vesta_bureau_aspiration_recirculation_equivalent
+        unit_of_measurement: "vol/h"
+        state_class: measurement
+        icon: mdi:rotate-3d
+        availability: "{{ has_value('sensor.vesta_bureau_aspiration_mixing_flow') }}"
+        state: >-
+          {% set q = states('sensor.vesta_bureau_aspiration_mixing_flow') | float(0) %}
+          {{ (q * 60 / 44.8) | round(0) }}
+        attributes:
+          room_volume_m3: 44.8
+
+      - name: Vesta Living Last Command Age
+        unique_id: vesta_living_last_command_age
+        unit_of_measurement: "s"
+        state_class: measurement
+        icon: mdi:timer-outline
+        availability: "{{ has_value('input_datetime.vesta_living_last_command_at') }}"
+        state: >-
+          {% set ts = as_datetime(states('input_datetime.vesta_living_last_command_at')) %}
+          {{ (now() - ts).total_seconds() | round(0) if ts else 0 }}
+
+      - name: Vesta Bureau Last Command Age
+        unique_id: vesta_bureau_last_command_age
+        unit_of_measurement: "s"
+        state_class: measurement
+        icon: mdi:timer-outline
+        availability: "{{ has_value('input_datetime.vesta_bureau_last_command_at') }}"
+        state: >-
+          {% set ts = as_datetime(states('input_datetime.vesta_bureau_last_command_at')) %}
+          {{ (now() - ts).total_seconds() | round(0) if ts else 0 }}
+
+      - name: Vesta Living Command Deviation
+        unique_id: vesta_living_command_deviation
+        unit_of_measurement: "step"
+        state_class: measurement
+        icon: mdi:delta
+        availability: >-
+          {{ has_value('sensor.vesta_living_fan_signed_speed')
+             and has_value('input_number.vesta_living_last_requested_signed_speed') }}
+        state: >-
+          {{ (states('sensor.vesta_living_fan_signed_speed') | int(0)
+              - states('input_number.vesta_living_last_requested_signed_speed') | int(0)) | abs }}
+
+      - name: Vesta Bureau Command Deviation
+        unique_id: vesta_bureau_command_deviation
+        unit_of_measurement: "step"
+        state_class: measurement
+        icon: mdi:delta
+        availability: >-
+          {{ has_value('sensor.vesta_bureau_fan_signed_speed')
+             and has_value('input_number.vesta_bureau_last_requested_signed_speed') }}
+        state: >-
+          {{ (states('sensor.vesta_bureau_fan_signed_speed') | int(0)
+              - states('input_number.vesta_bureau_last_requested_signed_speed') | int(0)) | abs }}
+
+      - name: Vesta Living Command Trace Summary
+        unique_id: vesta_living_command_trace_summary
+        icon: mdi:timeline-text-outline
+        state: "{{ states('input_select.vesta_living_last_command_source') }}"
+        attributes:
+          relation: "{{ states('input_select.vesta_living_last_command_relation') }}"
+          observed_signed_speed: "{{ states('input_number.vesta_living_last_observed_signed_speed') }}"
+          requested_signed_speed: "{{ states('input_number.vesta_living_last_requested_signed_speed') }}"
+          deviation_steps: "{{ states('sensor.vesta_living_command_deviation') }}"
+          note: "{{ states('input_text.vesta_living_last_command_note') }}"
+          user_authority: "{{ states('input_number.vesta_control_user_authority') }}"
+          automation_aggressiveness: "{{ states('input_number.vesta_control_automation_aggressiveness') }}"
+
+      - name: Vesta Bureau Command Trace Summary
+        unique_id: vesta_bureau_command_trace_summary
+        icon: mdi:timeline-text-outline
+        state: "{{ states('input_select.vesta_bureau_last_command_source') }}"
+        attributes:
+          relation: "{{ states('input_select.vesta_bureau_last_command_relation') }}"
+          observed_signed_speed: "{{ states('input_number.vesta_bureau_last_observed_signed_speed') }}"
+          requested_signed_speed: "{{ states('input_number.vesta_bureau_last_requested_signed_speed') }}"
+          deviation_steps: "{{ states('sensor.vesta_bureau_command_deviation') }}"
+          note: "{{ states('input_text.vesta_bureau_last_command_note') }}"
+          user_authority: "{{ states('input_number.vesta_control_user_authority') }}"
+          automation_aggressiveness: "{{ states('input_number.vesta_control_automation_aggressiveness') }}"
+
+automation:
+  - id: vesta_trace_living_fan_command_source
+    alias: Vesta Trace Living Fan Command Source
+    mode: queued
+    triggers:
+      - trigger: state
+        entity_id: sensor.vesta_living_fan_signed_speed
+    conditions:
+      - condition: template
+        value_template: "{{ trigger.from_state is not none and trigger.to_state is not none }}"
+      - condition: template
+        value_template: "{{ trigger.to_state.state not in ['unknown', 'unavailable'] }}"
+    actions:
+      - variables:
+          observed: "{{ trigger.to_state.state | int(0) }}"
+          requested: "{{ states('input_number.vesta_living_last_requested_signed_speed') | int(0) }}"
+          pending_source: "{{ states('input_select.vesta_living_pending_command_source') }}"
+          pending_at_raw: "{{ states('input_datetime.vesta_living_pending_command_at') }}"
+          pending_ts: "{{ as_datetime(pending_at_raw) if pending_at_raw not in ['unknown', 'unavailable', 'none'] else none }}"
+          age_s: "{{ (now() - pending_ts).total_seconds() if pending_ts else 999999 }}"
+          close_window_s: "{{ 15 + (states('input_number.vesta_control_user_authority') | float(0.70) * 45) }}"
+          close_threshold: "{{ 1 if states('input_number.vesta_control_automation_aggressiveness') | float(0.35) < 0.65 else 0 }}"
+          delta: "{{ (observed - requested) | abs }}"
+          follows_pending: "{{ pending_source not in ['none', 'unknown', 'unavailable'] and age_s | float(999999) <= close_window_s | float(45) and delta | int(99) == 0 }}"
+          close_to_pending: "{{ pending_source not in ['none', 'unknown', 'unavailable'] and age_s | float(999999) <= close_window_s | float(45) and delta | int(99) <= close_threshold | int(1) and delta | int(99) > 0 }}"
+          relation: >-
+            {% if follows_pending %}
+              follows_pending_command
+            {% elif close_to_pending %}
+              close_to_pending_command
+            {% elif pending_source not in ['none', 'unknown', 'unavailable'] and age_s | float(999999) <= close_window_s | float(45) %}
+              diverges_from_pending_command
+            {% else %}
+              external_without_pending_command
+            {% endif %}
+          source: >-
+            {% if follows_pending or close_to_pending %}
+              {{ pending_source }}
+            {% elif trigger.to_state.context.user_id %}
+              ha_user
+            {% elif trigger.to_state.context.parent_id %}
+              ha_automation
+            {% else %}
+              external_device_or_cloud
+            {% endif %}
+          note: >-
+            observed={{ observed }};
+            requested={{ requested }};
+            delta={{ delta }};
+            pending_source={{ pending_source }};
+            age_s={{ age_s | float(999999) | round(0) }};
+            context_user={{ trigger.to_state.context.user_id | default('none', true) }};
+            context_parent={{ trigger.to_state.context.parent_id | default('none', true) }}
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.vesta_living_last_observed_signed_speed
+        data:
+          value: "{{ observed }}"
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.vesta_living_last_command_source
+        data:
+          option: "{{ source | trim }}"
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.vesta_living_last_command_relation
+        data:
+          option: "{{ relation | trim }}"
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.vesta_living_last_command_at
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.vesta_living_last_command_note
+        data:
+          value: "{{ note[:255] }}"
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.vesta_living_pending_command_source
+        data:
+          option: none
+
+  - id: vesta_trace_bureau_fan_command_source
+    alias: Vesta Trace Bureau Fan Command Source
+    mode: queued
+    triggers:
+      - trigger: state
+        entity_id: sensor.vesta_bureau_fan_signed_speed
+    conditions:
+      - condition: template
+        value_template: "{{ trigger.from_state is not none and trigger.to_state is not none }}"
+      - condition: template
+        value_template: "{{ trigger.to_state.state not in ['unknown', 'unavailable'] }}"
+    actions:
+      - variables:
+          observed: "{{ trigger.to_state.state | int(0) }}"
+          requested: "{{ states('input_number.vesta_bureau_last_requested_signed_speed') | int(0) }}"
+          pending_source: "{{ states('input_select.vesta_bureau_pending_command_source') }}"
+          pending_at_raw: "{{ states('input_datetime.vesta_bureau_pending_command_at') }}"
+          pending_ts: "{{ as_datetime(pending_at_raw) if pending_at_raw not in ['unknown', 'unavailable', 'none'] else none }}"
+          age_s: "{{ (now() - pending_ts).total_seconds() if pending_ts else 999999 }}"
+          close_window_s: "{{ 15 + (states('input_number.vesta_control_user_authority') | float(0.70) * 45) }}"
+          close_threshold: "{{ 1 if states('input_number.vesta_control_automation_aggressiveness') | float(0.35) < 0.65 else 0 }}"
+          delta: "{{ (observed - requested) | abs }}"
+          follows_pending: "{{ pending_source not in ['none', 'unknown', 'unavailable'] and age_s | float(999999) <= close_window_s | float(45) and delta | int(99) == 0 }}"
+          close_to_pending: "{{ pending_source not in ['none', 'unknown', 'unavailable'] and age_s | float(999999) <= close_window_s | float(45) and delta | int(99) <= close_threshold | int(1) and delta | int(99) > 0 }}"
+          relation: >-
+            {% if follows_pending %}
+              follows_pending_command
+            {% elif close_to_pending %}
+              close_to_pending_command
+            {% elif pending_source not in ['none', 'unknown', 'unavailable'] and age_s | float(999999) <= close_window_s | float(45) %}
+              diverges_from_pending_command
+            {% else %}
+              external_without_pending_command
+            {% endif %}
+          source: >-
+            {% if follows_pending or close_to_pending %}
+              {{ pending_source }}
+            {% elif trigger.to_state.context.user_id %}
+              ha_user
+            {% elif trigger.to_state.context.parent_id %}
+              ha_automation
+            {% else %}
+              external_device_or_cloud
+            {% endif %}
+          note: >-
+            observed={{ observed }};
+            requested={{ requested }};
+            delta={{ delta }};
+            pending_source={{ pending_source }};
+            age_s={{ age_s | float(999999) | round(0) }};
+            context_user={{ trigger.to_state.context.user_id | default('none', true) }};
+            context_parent={{ trigger.to_state.context.parent_id | default('none', true) }}
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.vesta_bureau_last_observed_signed_speed
+        data:
+          value: "{{ observed }}"
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.vesta_bureau_last_command_source
+        data:
+          option: "{{ source | trim }}"
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.vesta_bureau_last_command_relation
+        data:
+          option: "{{ relation | trim }}"
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.vesta_bureau_last_command_at
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.vesta_bureau_last_command_note
+        data:
+          value: "{{ note[:255] }}"
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.vesta_bureau_pending_command_source
+        data:
+          option: none
